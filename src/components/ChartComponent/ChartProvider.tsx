@@ -7,8 +7,8 @@ import ChartContainer from './ChartContainer'
 import ModalCreateChart from './ModalCreateChart'
 import HiddenCanvas from './HiddenCanvas'
 import { ActionTypes, AggregateFunctions, AcceptedChartTypes, ComparingChartTypes, ExportSupportedFormat } from '../../enums/enums'
-import { Nullable, ProcessedData, NullableArray, Canvas } from '../../types/types'
-import { EXPORT_SUPPORTED_FORMATS, AGGREGATE_FUNCTIONS, CHART_TYPES, COMPARING_CHART_TYPES, DATE_MODIFIERS } from '../../constants/constants'
+import { Nullable, ProcessedData, NullableArray, HiddenCanvasOptions } from '../../types/types'
+import { AGGREGATE_FUNCTIONS, CHART_TYPES, COMPARING_CHART_TYPES, DATE_MODIFIERS } from '../../constants/constants'
 import { createOptions, handleDayModifier, getWeekNumber, monthNumberToShortMonth } from '../../helpers/helpers'
 
 type ChartProviderProps = {
@@ -44,8 +44,7 @@ const ChartProvider: React.FC<ChartProviderProps> = ({ referrence, datasource, a
     const [ready, setReady] = useState(false)
     const [showModal, setShowModal] = useState(false)
     const [enableHiddenCanvas, setEnableHiddenCanvas] = useState(false)
-    const [canvasResolution, setCanvasResolution] = useState<Nullable<Canvas>>(null)
-    const [imageFormat, setImageFormat] = useState<Nullable<ExportSupportedFormat>>(null)
+    const [hiddenCanvasSettings, setHiddenCanvasSettings] = useState<Nullable<HiddenCanvasOptions>>(null)
 
     // on initial load, extract all k/v's with type number, string and date respectively
     // readonly-ish, can probably use useRef, updated only on first load
@@ -123,7 +122,7 @@ const ChartProvider: React.FC<ChartProviderProps> = ({ referrence, datasource, a
             const WeekHandlerB = (str: string) => `Week ${str}`
 
             const MonthHandlerA = (ds: string) => new Date(ds).getUTCMonth()
-            const MonthHandlerB = (mn: number) => monthNumberToShortMonth(mn)
+            const MonthHandlerB = (mn: string) => monthNumberToShortMonth(mn)
 
             const YearHandlerA = (ds: string) => new Date(ds).getUTCFullYear()
             const YearHandlerB = (str: string) => `Year ${str}`
@@ -148,56 +147,12 @@ const ChartProvider: React.FC<ChartProviderProps> = ({ referrence, datasource, a
                 })
             }
 
-            // TODO: 
-            // if (!PATTERN.includes(cDateModifier as string)) {
-            //     mapped = total.map((item) => {
-            //         const object: any = Object.entries(item).reduce((acc: any, cv: any) => {
-            //             const key = cv[0]
-            //             const value = cv[1]
-            //             const processedKey = handlerA(key) as string
-
-            //             if (acc[processedKey]) {
-            //                 if (aggregate === 'Count') {
-            //                     acc[processedKey] += 1
-            //                 } else {
-            //                     acc[processedKey] += value
-            //                 }
-            //             }
-
-            //             else {
-            //                 if (aggregate === 'Count') {
-            //                     acc[processedKey] = 1
-            //                 } else {
-            //                     acc[processedKey] = value
-            //                 }
-            //             }
-
-            //             return acc
-            //         }, {})
-
-
-            //         const sortedItems = Object.entries(object).sort((a, b) => Number(a[0]) - Number(b[0]))
-            //         let updatedItems = sortedItems.reduce((acc: any, cv: any) => {
-            //             const key = cDateModifier === 'Month' ? Number(cv[0]) + 1 : cv[0]
-            //             const value = cv[1]
-            //             const updatedKey = handlerB(key)
-
-            //             acc[updatedKey] = value
-            //             return acc
-
-            //         }, {})
-
-            //         return updatedItems
-            //     })
-            // }
-            // END TODO
-
-            if (cDateModifier === 'Week') {
+            else {
                 mapped = total.map((item) => {
                     const object: any = Object.entries(item).reduce((acc: any, cv: any) => {
                         const key = cv[0]
                         const value = cv[1]
-                        const processedKey = getWeekNumber(new Date(key))
+                        const processedKey = handlerA(key) as string
 
                         if (acc[processedKey]) {
                             if (aggregate === 'Count') {
@@ -221,91 +176,9 @@ const ChartProvider: React.FC<ChartProviderProps> = ({ referrence, datasource, a
 
                     const sortedItems = Object.entries(object).sort((a, b) => Number(a[0]) - Number(b[0]))
                     let updatedItems = sortedItems.reduce((acc: any, cv: any) => {
-                        const key = cv[0]
+                        const key = cDateModifier === 'Month' ? Number(cv[0]) + 1 : cv[0]
                         const value = cv[1]
-                        const updatedKey = `Week ${key}`
-
-                        acc[updatedKey] = value
-                        return acc
-
-                    }, {})
-
-                    return updatedItems
-                })
-            }
-
-            if (cDateModifier === 'Month') {
-                mapped = total.map((item) => {
-                    const object: any = Object.entries(item).reduce((acc: any, cv: any) => {
-                        const key = cv[0]
-                        const value = cv[1]
-                        const processedKey = new Date(key).getUTCMonth()
-
-                        if (acc[processedKey]) {
-                            if (aggregate === 'Count') {
-                                acc[processedKey] += 1
-                            } else {
-                                acc[processedKey] += value
-                            }
-                        }
-
-                        else {
-                            if (aggregate === 'Count') {
-                                acc[processedKey] = 1
-                            } else {
-                                acc[processedKey] = value
-                            }
-                        }
-
-                        return acc
-                    }, {})
-
-                    const sortedItems = Object.entries(object).sort((a, b) => Number(a[0]) - Number(b[0]))
-                    let updatedItems = sortedItems.reduce((acc: any, cv: any) => {
-                        const key = Number(cv[0]) + 1
-                        const value = cv[1]
-                        const updatedKey = monthNumberToShortMonth(key)
-
-                        acc[updatedKey] = value
-                        return acc
-
-                    }, {})
-
-                    return updatedItems
-                })
-            }
-
-            if (cDateModifier === 'Year') {
-                mapped = total.map((item) => {
-                    const object: any = Object.entries(item).reduce((acc: any, cv: any) => {
-                        const key = cv[0]
-                        const value = cv[1]
-                        const processedKey = new Date(key).getUTCFullYear()
-
-                        if (acc[processedKey]) {
-                            if (aggregate === 'Count') {
-                                acc[processedKey] += 1
-                            } else {
-                                acc[processedKey] += value
-                            }
-                        }
-
-                        else {
-                            if (aggregate === 'Count') {
-                                acc[processedKey] = 1
-                            } else {
-                                acc[processedKey] = value
-                            }
-                        }
-
-                        return acc
-                    }, {})
-
-                    const sortedItems = Object.entries(object).sort((a, b) => Number(a[0]) - Number(b[0]))
-                    let updatedItems = sortedItems.reduce((acc: any, cv: any) => {
-                        const key = cv[0]
-                        const value = cv[1]
-                        const updatedKey = `Year ${key}`
+                        const updatedKey = handlerB(key)
 
                         acc[updatedKey] = value
                         return acc
@@ -342,17 +215,18 @@ const ChartProvider: React.FC<ChartProviderProps> = ({ referrence, datasource, a
         setProcessedData({ labels: mergedKeysFromAllSources, data: valuesOnlyWithFlatKeys, options: chartOptions })
     }, [cType, aggregate, cLabels, cValues, cDateModifier])
 
-    const updateCanvasResolution = (height: number, width: number) => {
-        if (!height || !width) return
-        if (typeof height !== "number" || typeof width !== "number") return
-
-        setCanvasResolution({ height, width })
+    const createChart = (object: HiddenCanvasOptions) => {
+        setHiddenCanvasSettings(object)
+        closeModal()
+        setEnableHiddenCanvas(true)
     }
 
     const closeModal = () => setShowModal(false)
     const openModal = () => setShowModal(true)
-    const confirmDownload = () => setEnableHiddenCanvas(true)
-    const hideHiddenCanvas = () => setEnableHiddenCanvas(false)
+    const hideHiddenCanvas = () => {
+        setHiddenCanvasSettings(null)
+        setEnableHiddenCanvas(false)
+    }
 
     const handleCTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         let value = action === ActionTypes.Create ? e.currentTarget.value as AcceptedChartTypes : e.currentTarget.value as ComparingChartTypes
@@ -388,11 +262,6 @@ const ChartProvider: React.FC<ChartProviderProps> = ({ referrence, datasource, a
         const value = e.currentTarget.value
         if (!DATE_MODIFIERS.includes(value)) return
         setCDateModifier(value)
-    }
-
-    const handleImageFormatChange = (format: ExportSupportedFormat) => {
-        if (!EXPORT_SUPPORTED_FORMATS.includes(format)) return
-        setImageFormat(format)
     }
 
     if (!ready) return <div>Loading form...</div>
@@ -456,7 +325,11 @@ const ChartProvider: React.FC<ChartProviderProps> = ({ referrence, datasource, a
                             <h5>Preview Chart</h5>
                         </Row>
                         <Row>
-                            <ChartContainer type={cType as AcceptedChartTypes} data={processedData.data} labels={processedData.labels} options={processedData.options} />
+                            <ChartContainer
+                                type={cType as AcceptedChartTypes}
+                                data={processedData.data}
+                                labels={processedData.labels}
+                                options={processedData.options} />
                         </Row>
                     </Container>
                 )
@@ -465,18 +338,24 @@ const ChartProvider: React.FC<ChartProviderProps> = ({ referrence, datasource, a
             <Button className="w-100 mb-3 mt-2" onClick={openModal}>Save</Button>
 
             {
-                showModal && <ModalCreateChart show={showModal} close={closeModal} onConfirm={confirmDownload} setCanvas={updateCanvasResolution} changeFormat={handleImageFormatChange} />
+                showModal && <ModalCreateChart
+                    type={cType as AcceptedChartTypes}
+                    show={showModal}
+                    close={closeModal}
+                    createChart={createChart}
+                    action={action}
+                />
             }
 
             {
-                enableHiddenCanvas && cType && <HiddenCanvas
+                enableHiddenCanvas && cType && hiddenCanvasSettings && <HiddenCanvas
                     type={cType as AcceptedChartTypes}
                     data={processedData?.data ?? []}
                     labels={processedData?.labels ?? []}
                     options={processedData?.options ?? {}}
+                    canvasOptions={hiddenCanvasSettings}
                     hide={hideHiddenCanvas}
-                    canvasResolution={canvasResolution ?? null}
-                    format={imageFormat as ExportSupportedFormat} />
+                />
             }
         </div>
     )

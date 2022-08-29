@@ -15,6 +15,7 @@ const CenteredContainer: React.FC<CenteredContainerProps> = ({ children }) => {
                 height: "92vh",
                 flexDirection: "column"
             }}
+            className="text-center"
         >
             {children}
         </Container>

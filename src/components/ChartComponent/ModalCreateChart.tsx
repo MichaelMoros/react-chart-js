@@ -4,7 +4,10 @@ import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
 import FloatingLabel from 'react-bootstrap/FloatingLabel'
 import { EXPORT_SUPPORTED_FORMATS } from '../../constants/constants';
-import { ExportSupportedFormat } from '../../enums/enums'
+import { ExportSupportedFormat, AcceptedChartTypes, ActionTypes } from '../../enums/enums'
+import { COMPARING_CHART_TYPES } from '../../constants/constants'
+import { HiddenCanvasOptions } from '../../types/types'
+import ModalChartInputs from './ModalChartInputs';
 
 const MAX_HEIGHT = 3840
 const MAX_WIDTH = 2160
@@ -13,23 +16,34 @@ const MIN_VALUE = 200
 interface ModalCreateChartProps {
     show: boolean
     close: () => void
-    onConfirm: () => void
-    setCanvas: (h: number, w: number) => void
-    changeFormat: (f: ExportSupportedFormat) => void
+    type: AcceptedChartTypes
+    createChart: (t: HiddenCanvasOptions) => void
+    action: ActionTypes
 }
 
 type TResolution = { height: number, width: number }
+type CustomLabels = { labelA: string, labelB: string }
 
-const ModalCreateChart: React.FC<ModalCreateChartProps> = ({ show, close, onConfirm, setCanvas, changeFormat }) => {
+const ModalCreateChart: React.FC<ModalCreateChartProps> = ({ type, show, close, createChart, action }) => {
     const [resolution, setResolution] = useState<TResolution>({ height: 1920, width: 1080 })
     const [format, setFormat] = useState(EXPORT_SUPPORTED_FORMATS[0])
+    const [customLabels, setCustomLabels] = useState<CustomLabels>({ labelA: 'Dataset A', labelB: 'Dataset B' })
+
+    const isComparingChart = COMPARING_CHART_TYPES.includes(type as any)
 
     const startDownloadAndClose = () => {
         const { height, width } = resolution
-        setCanvas(height, width)
-        changeFormat(format as ExportSupportedFormat)
-        onConfirm()
-        close()
+        const _resolution = { height, width }
+        const { labelA, labelB } = customLabels
+        const options = isComparingChart ? { labelA, labelB } : null
+
+        const param = {
+            resolution: _resolution,
+            options,
+            format
+        }
+
+        createChart(param)
     }
 
     const handleResolution = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -62,9 +76,32 @@ const ModalCreateChart: React.FC<ModalCreateChartProps> = ({ show, close, onConf
         setFormat(value)
     }
 
+
+    const handleCustomLabelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const key = e.currentTarget.name
+        const value = e.currentTarget.value
+
+        setCustomLabels({
+            ...customLabels,
+            [key]: value
+        })
+    }
+
+    const handleCustomLabelBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+        const key = e.currentTarget.name
+        const value = e.currentTarget.value
+
+        if (value.length > 1) return
+
+        setCustomLabels({
+            ...customLabels,
+            [key]: key === 'labelA' ? 'Dataset A' : 'Dataset B'
+        })
+    }
+
     return (
         <>
-            <Modal show={show} onHide={close}>
+            <Modal show={show} onHide={close} centered>
                 <Modal.Header closeButton>
                     <Modal.Title>Save Chart</Modal.Title>
                 </Modal.Header>
@@ -100,7 +137,7 @@ const ModalCreateChart: React.FC<ModalCreateChartProps> = ({ show, close, onConf
                             />
                         </FloatingLabel>
 
-                        <FloatingLabel controlId="floatingSelect-format" label="Select File Format">
+                        <FloatingLabel controlId="floatingSelect-format" label="Select File Format" className="mb-3">
                             <Form.Select defaultValue={format} aria-label="Select File Format" onChange={handleFormatChange}>
                                 {
                                     EXPORT_SUPPORTED_FORMATS.map((item, index) => {
@@ -111,6 +148,14 @@ const ModalCreateChart: React.FC<ModalCreateChartProps> = ({ show, close, onConf
                                 }
                             </Form.Select>
                         </FloatingLabel>
+
+                        <ModalChartInputs
+                            isComparingChart={isComparingChart}
+                            action={action}
+                            customLabels={customLabels}
+                            onChange={handleCustomLabelChange}
+                            onBlur={handleCustomLabelBlur}
+                        />
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>

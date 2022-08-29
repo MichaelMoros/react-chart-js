@@ -151,7 +151,7 @@ const generateColors = (n: number) => {
     return colorset
 }
 
-const formatChartDataProp = (type: AcceptedChartTypes, labels: any[], data: any[]) => {
+const formatChartDataProp = (type: AcceptedChartTypes, labels: any[], data: any[], labelA?: string, labelB?: string) => {
     const colors = generateColors(data?.length || 1)
 
     if (type === AcceptedChartTypes.Pie || type === AcceptedChartTypes.Doughnut) {
@@ -175,9 +175,10 @@ const formatChartDataProp = (type: AcceptedChartTypes, labels: any[], data: any[
             labels,
             datasets: data.map((item, index) => {
                 const values = item.map((_item: any) => _item)
+                const datasetLabel = index === 0 ? labelA ? labelA : 'Dataset A' : labelB ? labelB : 'Dataset B'
 
                 return {
-                    label: index === 0 ? ' Dataset A' : ' Dataset B',
+                    label: datasetLabel,
                     data: values,
                     backgroundColor: colors[index],
                     borderColor: colors[index],

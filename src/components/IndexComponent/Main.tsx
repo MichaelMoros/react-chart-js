@@ -36,11 +36,11 @@ const Main: React.FC<MainProps> = ({ toggleView, filenames = [], datasource = []
     return (
         <Container className="mt-4">
             <div>
-                <span style={{ fontSize: "26px" }}><ArrowLeft onClick={toggleView} style={{ cursor: "pointer", marginBottom: "5px" }} /> Change Datasource</span>
+                <span style={{ fontSize: "16px" }}><ArrowLeft onClick={toggleView} style={{ cursor: "pointer", marginBottom: "5px" }} /> Change Datasource</span>
             </div>
 
             <div className="mt-4">
-                <p style={{ fontSize: "18px" }}>
+                <p style={{ fontSize: "14px" }}>
                     <strong>{actionText}</strong> using <strong>{isSampleData ? 'Sample Data' : filenameText}</strong>
                 </p>
             </div>

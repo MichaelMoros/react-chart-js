@@ -270,23 +270,17 @@ const App = () => {
     if (showIndex && !showCharts) {
         return (
             <CenteredContainer>
-                <h3 className="mt-0 pt-0 mb-2">Chart App using Chart JS</h3>
-                <small>Import data/s to create static charts</small>
-                <div className="my-0 py-0">
-                    <small>
-                        Created using
-                        {" "}
-                        <a href="https://www.chartjs.org/">ChartJS</a>
-                        {" "}
-                        and
-                        {" "}
-                        <a href="https://reactjs.org/">React</a>
-                    </small>
-                </div>
-                <small>
-                    <a href="https://github.com/MichaelMoros">Source</a>
+                <h3 className="mt-0 pt-0 mb-2">Chart App using ChartJS</h3>
+                <small className="my-0 py-0">Import data/s to create charts</small>
+                <small className="my-0 py-0">
+                    Created using
+                    {" "}
+                    <a href="https://www.chartjs.org/">ChartJS</a>
+                    {" "}
+                    and
+                    {" "}
+                    <a href="https://reactjs.org/">React</a>
                 </small>
-
                 <Button variant={"primary"} size="sm" onClick={() => setShowIndex(false)} className="mt-3">Get Started</Button>
             </CenteredContainer>
         )
@@ -294,9 +288,9 @@ const App = () => {
 
     else if (!showIndex && !showCharts) {
         return (
-            <Container className="mt-5" style={{ position: "relative", height: "92vh" }}>
-                <h3 className="mt-5 mb-0">Create Chart</h3>
-                <h5 className="mt-5 mb-0">First Step</h5>
+            <Container className="mb-3" style={{ position: "relative", height: "92vh" }}>
+                <h4 className="mt-3 mb-0">Create Chart</h4>
+                <h6 className="mt-3 mb-0">First Step</h6>
 
                 <FloatingSelect
                     value={action}
@@ -309,7 +303,7 @@ const App = () => {
                 {
                     action !== ActionTypes.NoAction && (
                         <>
-                            <h5>We need data to work with</h5>
+                            <h6>We need data to work with</h6>
                             <FloatingSelect
                                 value={dataSourceType}
                                 handler={handleDataSourceTypeChange}

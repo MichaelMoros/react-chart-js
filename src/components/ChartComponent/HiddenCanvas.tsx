@@ -4,8 +4,8 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearSca
 import { Pie, Doughnut, Bar, Line } from 'react-chartjs-2';
 import { formatChartDataProp } from '../../helpers/helpers'
 import { CHART_TYPES } from '../../constants/constants'
-import { Canvas, Nullable } from '../../types/types'
-import { AcceptedChartTypes, ExportSupportedFormat } from '../../enums/enums'
+import { HiddenCanvasOptions } from '../../types/types'
+import { AcceptedChartTypes } from '../../enums/enums'
 
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title, PointElement, LineElement);
@@ -15,20 +15,19 @@ type HiddenCanvasProps = {
     data: any[]
     labels: any[]
     options: any
+    canvasOptions: HiddenCanvasOptions
     hide: () => void
-    canvasResolution: Nullable<Canvas>
-    format: ExportSupportedFormat
 }
 
-const HiddenCanvas: React.FC<HiddenCanvasProps> = ({ type, data = [], labels = [], options = {}, hide, canvasResolution = null, format }) => {
+const HiddenCanvas: React.FC<HiddenCanvasProps> = ({ type, data = [], labels = [], options = {}, canvasOptions, hide }) => {
     const thisChart: any = useRef()
     const initialDownload = useRef(false)
 
-    if (!format) {
+    if (!canvasOptions.format) {
         return <CenteredErrorMessage reason={'Format not specified'} />
     }
 
-    if (!canvasResolution?.height || !canvasResolution?.width) {
+    if (!canvasOptions?.resolution?.height || !canvasOptions?.resolution?.width) {
         return <CenteredErrorMessage reason={'Canvas resolution not specified'} />
     }
 
@@ -46,10 +45,10 @@ const HiddenCanvas: React.FC<HiddenCanvasProps> = ({ type, data = [], labels = [
 
             setTimeout(() => {
                 // if no interval for some reason you either get a corrupted file or incomplete image
-                const imageFormat = `image/${format}`
+                const imageFormat = `image/${canvasOptions.format}`
                 const link = document.createElement('a');
                 link.href = thisChart?.current?.toBase64Image(imageFormat, 1)
-                link.download = `chart.${format}`
+                link.download = `chart.${canvasOptions.format}`
                 link.click()
                 hide()
             }, 1000)
@@ -58,7 +57,7 @@ const HiddenCanvas: React.FC<HiddenCanvasProps> = ({ type, data = [], labels = [
         }
     }, [])
 
-    const requiredDataProp = formatChartDataProp(type, labels, data)
+    const requiredDataProp = canvasOptions?.options ? formatChartDataProp(type, labels, data, canvasOptions.options.labelA, canvasOptions.options.labelB) : formatChartDataProp(type, labels, data)
 
     const chartDataProp = {
         labels,
@@ -72,7 +71,7 @@ const HiddenCanvas: React.FC<HiddenCanvasProps> = ({ type, data = [], labels = [
         "Line": <Line data={chartDataProp} options={options} style={{ display: "none" }} ref={thisChart} />
     }
 
-    const { height: _height, width: _width } = canvasResolution
+    const { height: _height, width: _width } = canvasOptions.resolution
 
     return (
         <div style={{ minHeight: _height, height: _height, minWidth: _width, width: _width }}>

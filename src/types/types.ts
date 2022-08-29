@@ -1,3 +1,5 @@
+import { ExportSupportedFormat } from '../enums/enums'
+
 enum Gender {
     Male = 'male',
     Female = 'female'
@@ -20,12 +22,16 @@ type ProcessedData = {
     options?: any
 }
 
-type Canvas = { height: number, width: number }
+type HiddenCanvasOptions = {
+    resolution: { height: number, width: number }
+    options?: { labelA: string, labelB: string } | null
+    format: ExportSupportedFormat
+}
 
 export type {
     TestData,
     Nullable,
     NullableArray,
     ProcessedData,
-    Canvas
+    HiddenCanvasOptions
 }
